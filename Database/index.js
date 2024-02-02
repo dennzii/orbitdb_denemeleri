@@ -30,7 +30,6 @@ app.get('/ekle', async function (req, res) {
   //Kayıt eklenir.
   await db.put(key.toString(),data.toString())
 
-  //Kayıt oluşturulduktan sonra db instance'ı kapatılır
  
   //Request sonladırılır.
   res.end()
