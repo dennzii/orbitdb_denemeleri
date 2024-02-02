@@ -1,5 +1,5 @@
 {
-  "name": "database",
+  "name": "orbitdb-peer",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
@@ -11,11 +11,10 @@
   "type": "module",
   "dependencies": {
     "@chainsafe/libp2p-gossipsub": "^11.1.0",
-    "@libp2p/websockets": "^8.0.13",
-    "express": "^4.18.2",
+    "@orbitdb/core": "^2.0.1",
+    "blockstore-level": "^1.1.7",
+    "helia": "^4.0.0",
     "libp2p": "^1.2.1",
-    "libp2p-gossipsub": "^0.13.0",
-    "websockets": "^0.2.0",
-    "ws": "^8.16.0"
+    "multiformats": "^13.0.1"
   }
 }
