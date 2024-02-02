@@ -7,6 +7,10 @@ import { mdns } from '@libp2p/mdns'
 
 export const Libp2pOptions = {
   peerDiscovery: [
+    /**
+     * mDNS local olarak peer discovery'i sağlar fakat ileride dış internet üzerinde çalışılacağı için 
+     * farklı bir yöntem seçilmeli. Libp2p docs kısmında ayrıntılı bir şekilde anlatılıyor. (dennzii)
+     */
     mdns()
   ],
   addresses: {
