@@ -1,12 +1,13 @@
 import { createLibp2p } from 'libp2p'
 import { createHelia } from 'helia'
-import { createOrbitDB, IPFSAccessController } from '@orbitdb/core'
+import { createOrbitDB, IPFSAccessController,IPFSBlockStorage } from '@orbitdb/core'
 
 import { Libp2pOptions } from './config/libp2p.js'
 
 //CID'yi yaratmak için lazım.
 import { base58btc } from 'multiformats/bases/base58'
 import { CID } from 'multiformats/cid'
+import { LevelBlockstore } from 'blockstore-level'
 
 
 const main = async () => {  
@@ -25,6 +26,7 @@ const main = async () => {
   } else {
     //Herkesin write işlemi yapabilecek şekilde konfigüre edildi.
     //Eğer istenirse 'write' attribute'u sadece belirli identitye sahip peer'ların işlem yapabileceği şekilde değiştirilebilir.
+    //Default olarak veri memoryde tutuluyor. Bu da peer kapatıldığına verinin yok olması demek. Helia'nın faklı depolama çözümleri kullanılmalı.
     db = await orbitdb.open('my-db',{type:'keyvalue', AccessController: IPFSAccessController({ 
       write: ['*']
 
@@ -40,10 +42,12 @@ const main = async () => {
   const cid = CID.parse(addr.path, base58btc)
   console.log('CID:'+cid)
    */
+   await db.put('aaadaxx','joinn olduu')
 
   //Eğer bir peer katılırsa body'deki komutlar çağırılır.
   db.events.on('join', async (peerId, heads) => {
     console.log("Join gerceklesti")
+    
   })
 
   //Eğer db'ye bir entry eklenirse body'deki komutlar çağırılır.
@@ -63,9 +67,6 @@ const main = async () => {
 
       process.exit()
   })
-
-  
-
 }
 
 main()

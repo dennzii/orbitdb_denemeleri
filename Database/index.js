@@ -4,6 +4,7 @@ import { createOrbitDB } from '@orbitdb/core'
 
 import { Libp2pOptions } from './config/libp2p.js'
 
+
 //Server yaratılır
 import express from "express"
 const app = express();
@@ -15,6 +16,9 @@ const ipfs = await createHelia({ libp2p })
 let randDir = (Math.random() + 1).toString(36).substring(2)
 const orbitdb = await createOrbitDB({ ipfs, directory: `./${randDir}/orbitdb` ,id:"server"})
 
+let db = await orbitdb.open(process.argv[2])
+
+
 app.get('/ekle', async function (req, res) {
 
   //Get request parametreleri sabitlere atanır.
@@ -22,13 +26,12 @@ app.get('/ekle', async function (req, res) {
   const data = req.query.data
 
   //db'ye erişim sağlanır. Server scripti çalıştırılırken DB adresi parametre olarak verilmeli.
-  const db = await orbitdb.open(process.argv[2])
-
+  db = await orbitdb.open(process.argv[2])
   //Kayıt eklenir.
   await db.put(key.toString(),data.toString())
 
   //Kayıt oluşturulduktan sonra db instance'ı kapatılır
-  await db.close()
+ 
   //Request sonladırılır.
   res.end()
 
@@ -39,18 +42,26 @@ app.get('/ekle', async function (req, res) {
 app.get('/get', async function (req, res) {
   const key = req.query.key;
 
-  const db = await orbitdb.open(process.argv[2])
-
   const address = db.address
 
   const record = await db.get(key.toString())
 
-  await db.close()
   res.end()
 
   console.log("Kayit döndürüldü. "+record)
   
 });
+
+if(db)
+{
+  db.events.on('update', async (entry) => {
+    console.log('entry', entry)
+    
+    // To complete full replication, fetch all the records from the other peer.
+    await db.all()
+  })
+}
+
 
 function func()
 {
@@ -59,6 +70,7 @@ function func()
 
 // Eğer ctrl+c ile process terminate edilmek istenirse ipfs ve orbitdb durdurlur.
 process.on('SIGINT', async () => {
+  
   await db.close()
   await orbitdb.stop()
   await ipfs.stop()
