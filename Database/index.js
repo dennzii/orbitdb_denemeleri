@@ -14,10 +14,11 @@ const libp2p = await createLibp2p(Libp2pOptions)
 const ipfs = await createHelia({ libp2p })
 
 let randDir = (Math.random() + 1).toString(36).substring(2)
-const orbitdb = await createOrbitDB({ ipfs, directory: `./${randDir}/orbitdb` ,id:"server"})
+const orbitdb = await createOrbitDB({ ipfs, directory: `./$db/orbitdb` ,id:"server"})
 
 let db = await orbitdb.open(process.argv[2])
 
+db.all()
 
 app.get('/ekle', async function (req, res) {
 
@@ -28,7 +29,7 @@ app.get('/ekle', async function (req, res) {
   //db'ye erişim sağlanır. Server scripti çalıştırılırken DB adresi parametre olarak verilmeli.
   db = await orbitdb.open(process.argv[2])
   //Kayıt eklenir.
-  await db.put(key.toString(),data.toString())
+  await db.put(key.toString(),data.toString(),{pin:true})
 
  
   //Request sonladırılır.
@@ -39,6 +40,9 @@ app.get('/ekle', async function (req, res) {
 
 //Bu kısım problemli.
 app.get('/get', async function (req, res) {
+
+  
+
   const key = req.query.key;
 
   const address = db.address

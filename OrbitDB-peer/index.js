@@ -8,16 +8,19 @@ import { Libp2pOptions } from './config/libp2p.js'
 import { base58btc } from 'multiformats/bases/base58'
 import { CID } from 'multiformats/cid'
 import { LevelBlockstore } from 'blockstore-level'
+import e from 'express'
 
 
 const main = async () => {  
-  
-  const libp2p = await createLibp2p(Libp2pOptions)
-  const ipfs = await createHelia({ libp2p })
 
-  // Rastgele isimde klasörler oluşturularak çakışmalar önlenir.
-  let randDir = (Math.random() + 1).toString(36).substring(2)
-  const orbitdb = await createOrbitDB({ ipfs, directory: `./${randDir}/orbitdb` ,id:"peer"})
+  //ipfs blockstorage ile veri process terminate edilse bile veritabanında tutulur.
+  const blockstore = new LevelBlockstore('./ipfs')
+  const libp2p = await createLibp2p(Libp2pOptions)
+  const ipfs = await createHelia({ libp2p, blockstore})
+
+  
+  
+  const orbitdb = await createOrbitDB({ ipfs, directory: `./$db/orbitdb` ,id:"peer"})
 
   let db
 
@@ -42,7 +45,6 @@ const main = async () => {
   const cid = CID.parse(addr.path, base58btc)
   console.log('CID:'+cid)
    */
-   await db.put('aaadaxx','joinn olduu')
 
   //Eğer bir peer katılırsa body'deki komutlar çağırılır.
   db.events.on('join', async (peerId, heads) => {
