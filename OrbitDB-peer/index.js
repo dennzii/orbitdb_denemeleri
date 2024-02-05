@@ -1,14 +1,21 @@
+/** 
+ * TO DO
+ * Grant Access mekanizması eklenecek
+ * En mantıklı storage seçimi yapılmalı
+ * 
+ */
+
 import { createLibp2p } from 'libp2p'
 import { createHelia } from 'helia'
-import { createOrbitDB, IPFSAccessController,IPFSBlockStorage } from '@orbitdb/core'
 
+import { createOrbitDB, IPFSAccessController } from '@orbitdb/core'
 import { Libp2pOptions } from './config/libp2p.js'
+
+import { LevelBlockstore } from 'blockstore-level'
 
 //CID'yi yaratmak için lazım.
 import { base58btc } from 'multiformats/bases/base58'
 import { CID } from 'multiformats/cid'
-import { LevelBlockstore } from 'blockstore-level'
-import e from 'express'
 
 
 const main = async () => {  
@@ -32,7 +39,7 @@ const main = async () => {
     //Default olarak veri memoryde tutuluyor. Bu da peer kapatıldığına verinin yok olması demek. Helia'nın faklı depolama çözümleri kullanılmalı.
     db = await orbitdb.open('my-db',{type:'keyvalue', AccessController: IPFSAccessController({ 
       write: ['*']
-
+      
     })})
   }
 

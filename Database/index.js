@@ -1,9 +1,17 @@
+/**
+ * TO DO
+ * Gönderi oluşturma,
+ * Gönderi görüntüleme,
+ * Gönderi Kabul etme(?),
+ * Requestleri eklenmeli
+ */
+
+
 import { createLibp2p } from 'libp2p'
 import { createHelia } from 'helia'
 import { createOrbitDB } from '@orbitdb/core'
 
 import { Libp2pOptions } from './config/libp2p.js'
-
 
 //Server yaratılır
 import express from "express"
@@ -28,7 +36,7 @@ app.get('/ekle', async function (req, res) {
 
   //db'ye erişim sağlanır. Server scripti çalıştırılırken DB adresi parametre olarak verilmeli.
   db = await orbitdb.open(process.argv[2])
-  //Kayıt eklenir.
+  //Kayıt eklenir. pin:true ile data ipfs'e pinlenir ve GC'den etkilenmez.
   await db.put(key.toString(),data.toString(),{pin:true})
 
  
@@ -40,8 +48,6 @@ app.get('/ekle', async function (req, res) {
 
 //Bu kısım problemli.
 app.get('/get', async function (req, res) {
-
-  
 
   const key = req.query.key;
 
