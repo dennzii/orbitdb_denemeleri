@@ -1,12 +1,14 @@
 /**
  * TO DO
- * Gönderi oluşturma,
- * Gönderi görüntüleme,
- * Acc register +
- * Requestleri eklenmeli
+ * + Gönderi oluşturma, mobil uygulamada createCargo çağrılcak. Burdan da addcargo reuesti ile kargonun bilgileri oluşturulacak.
+ * + Gönderi görüntüleme, Bu şu an çalışıyor.
+ * + Acc register, Bu da çalışıyor. Bu sadece server admini tarafından yapılabilmeli. Kullanıcı sisteme register yaparken bunu da çağırmalı.
+ * - Kargonun şu an kimde olduğuna dair anlamlı veri kullanıcıya sunulabilir.
+ * - Libp2p dış internet üzerinden haberleşebilecek şekilde konfigüre edilmeli.
+ * - Depolamanın kalıcı olması sağlandı fakat
  */
 
-import { ethers } from "ethers"
+
 
 import { createLibp2p } from 'libp2p'
 import { createHelia } from 'helia'
@@ -15,6 +17,8 @@ import { createOrbitDB } from '@orbitdb/core'
 import { Libp2pOptions } from './config/libp2p.js'
 
 import express from "express"
+
+import { ethers } from "ethers"
 import { ALCHEMY_API_KEY, PRIVATE_KEY } from "./api_keys.js"
 import { CONTRACT_ABI } from "./abi.js"
 
@@ -27,7 +31,7 @@ const ipfs = await createHelia({ libp2p })
 const orbitdb = await createOrbitDB({ ipfs, directory: `./db/orbitdb` ,id:"server"})
 let db = await orbitdb.open(process.argv[2])
 
-
+//Kontratla etkileşim için gereken tanımlamalar.
 const CONTRACT_ADDR = "0xc66dC72dbEbF537824cf47bc1c546099a5d42d5B"
 const provider = new ethers.providers.JsonRpcProvider(ALCHEMY_API_KEY)
 const wallet = new ethers.Wallet(PRIVATE_KEY, provider)
@@ -62,6 +66,7 @@ app.get('/addcargo', async function (req, res) {
 
 
 
+
 app.get('/getall', async function (req, res) {
 
   //Tüm kayıtları döndüren req.
@@ -83,10 +88,12 @@ app.get('/get', async function (req, res) {
   const address = db.address
   const id = req.query.id;
 
+  //Bu kısım kontrattaki skargo verisini çeker.
   await getCargoDetails(id)
+
+  //Burada ilgili kargonun bilgilerine orbitDB'den ulaşılır.
   const rec = await getCargoFromOrbitDB(parseInt(id))
   console.log(rec)
-  
 
   res.end()
 
@@ -110,6 +117,7 @@ function func()
 	console.log("Sunucu 8000 portu uzerine calisiyor...");
 }
 
+//Kargoya ait bilgilerin orbitDB'den çekilmesi.
 async function getCargoFromOrbitDB(id)
 {
   const record = await db.get(id)
@@ -117,6 +125,8 @@ async function getCargoFromOrbitDB(id)
   return record
 }
 
+
+//Bu mobil kullanıcılar register yaparken kullanılacak.
 app.get('/rgstrAddr', async function (req, res) {
     const addr = req.query.addr
     const name = req.query.name
@@ -131,7 +141,8 @@ app.get('/rgstrAddr', async function (req, res) {
         _id : addr,
         _name : name
       }
-
+      
+      //kaydedilen kişinin on-chain adresi ve ismi cismi kaydedilir.
       await db.put(entry,{pin:true})
 
     }
@@ -143,6 +154,7 @@ app.get('/rgstrAddr', async function (req, res) {
 
 //On-chain fonksiyonlar
 
+//Kontrat üzerindeki sipariş verileri çekilir.
 async function getCargoDetails(cargoID) {
 	const cargo = {
 		sender: '',
@@ -165,7 +177,7 @@ async function getCargoDetails(cargoID) {
 
 }
 
-
+//Kontrata parametre olarak verilen adres kayıt edilir.
 async function registerAddress(addr) {
   try {
     const tx = await contract.registerAddress(addr);
