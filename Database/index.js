@@ -2,7 +2,7 @@
  * TO DO
  * Gönderi oluşturma,
  * Gönderi görüntüleme,
- * Gönderi Kabul etme(?),
+ * Acc register +
  * Requestleri eklenmeli
  */
 
@@ -16,6 +16,7 @@ import { Libp2pOptions } from './config/libp2p.js'
 
 import express from "express"
 import { ALCHEMY_API_KEY, PRIVATE_KEY } from "./api_keys.js"
+import { CONTRACT_ABI } from "./abi.js"
 
 
 const app = express();
@@ -26,7 +27,8 @@ const ipfs = await createHelia({ libp2p })
 const orbitdb = await createOrbitDB({ ipfs, directory: `./db/orbitdb` ,id:"server"})
 let db = await orbitdb.open(process.argv[2])
 
-const CONTRACT_ADDR = ""
+
+const CONTRACT_ADDR = "0xc66dC72dbEbF537824cf47bc1c546099a5d42d5B"
 const provider = new ethers.providers.JsonRpcProvider(ALCHEMY_API_KEY)
 const wallet = new ethers.Wallet(PRIVATE_KEY, provider)
 const contract = new ethers.Contract(CONTRACT_ADDR, CONTRACT_ABI, wallet);
@@ -40,7 +42,7 @@ app.get('/addcargo', async function (req, res) {
 
   //Verilerin JSON formatında paketlenmesi
   const entry = {
-    _id : id,
+    _id : parseInt(id),
     _name : name,
     _lot : lot
   }
@@ -57,19 +59,8 @@ app.get('/addcargo', async function (req, res) {
 });
 
 //id'si verilen kaydın döndürülmesi
-app.get('/get', async function (req, res) {
 
-  const key = req.query.key;
 
-  const address = db.address
-
-  const record = await db.get(key.toString())
-
-  res.end()
-
-  console.log("Kayit döndürüldü. "+record)
-  
-});
 
 app.get('/getall', async function (req, res) {
 
@@ -79,6 +70,23 @@ app.get('/getall', async function (req, res) {
   for await (const record of db.iterator()) {
     console.log(record)
   }
+
+  res.end()
+
+  console.log("Tüm Kayitlar döndürüldü. ")
+  
+});
+
+app.get('/get', async function (req, res) {
+
+  //Tüm kayıtları döndüren req.
+  const address = db.address
+  const id = req.query.id;
+
+  await getCargoDetails(id)
+  const rec = await getCargoFromOrbitDB(parseInt(id))
+  console.log(rec)
+  
 
   res.end()
 
@@ -102,15 +110,22 @@ function func()
 	console.log("Sunucu 8000 portu uzerine calisiyor...");
 }
 
+async function getCargoFromOrbitDB(id)
+{
+  const record = await db.get(id)
+
+  return record
+}
+
 app.get('/rgstrAddr', async function (req, res) {
     const addr = req.query.addr
     const name = req.query.name
 
     //İlk önce on-chain olarak işlem gerçekleştirilir.
-    const res = registerAddress(addr)
+    const result = registerAddress(addr)
 
     //Eğer tx başarılı olursa orbitdb'ye entry yapılır.
-    if(res)
+    if(result)
     {
       const entry = {
         _id : addr,
@@ -128,6 +143,29 @@ app.get('/rgstrAddr', async function (req, res) {
 
 //On-chain fonksiyonlar
 
+async function getCargoDetails(cargoID) {
+	const cargo = {
+		sender: '',
+		receiver: '',
+		current: '',
+		status: 0,
+		cargoID: 0,
+	}
+
+	const tx = await contract.getCargoDetails(cargoID);
+
+	cargo.sender = tx[0];
+	cargo.receiver = tx[1];
+	cargo.current = tx[2];
+	cargo.status = tx[3];
+	cargo.cargoID = tx[4].toString();
+
+	console.log(cargo);
+
+
+}
+
+
 async function registerAddress(addr) {
   try {
     const tx = await contract.registerAddress(addr);
@@ -142,22 +180,6 @@ async function registerAddress(addr) {
   }
 }
 
-async function createCargo(addr){//Kargo oluşturma kısmı nerde yapılmalı? serverda mı mobilde mi. Sanki mobil daha mantıklı.
-  try {
-    const tx = await contract.createCargo(addr);
-
-    await tx.wait();
-    
-    console.log("Transaction basarili!");
-    return true
-  } catch (error) {
-    console.error("Hata:", error);
-    return false
-  }
-}
-
-
-
 // Eğer ctrl+c ile process terminate edilmek istenirse ipfs ve orbitdb durdurlur.
 process.on('SIGINT', async () => {
   
@@ -165,6 +187,7 @@ process.on('SIGINT', async () => {
   await orbitdb.stop()
   await ipfs.stop()
 
+  await server.close()
   process.exit()
 })
 

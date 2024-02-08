@@ -25,7 +25,7 @@ const main = async () => {
   const libp2p = await createLibp2p(Libp2pOptions)
   const ipfs = await createHelia({ libp2p, blockstore})
   
-  const orbitdb = await createOrbitDB({ ipfs, directory: `./$db/orbitdb` ,id:"peer"})
+  const orbitdb = await createOrbitDB({ ipfs, directory: `./db/orbitdb` ,id:"peer"})
 
   let db
 
