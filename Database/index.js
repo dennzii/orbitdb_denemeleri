@@ -8,8 +8,6 @@
  * - Depolamanın kalıcı olması sağlandı fakat
  */
 
-
-
 import { createLibp2p } from 'libp2p'
 import { createHelia } from 'helia'
 import { createOrbitDB } from '@orbitdb/core'
@@ -21,7 +19,6 @@ import express from "express"
 import { ethers } from "ethers"
 import { ALCHEMY_API_KEY, PRIVATE_KEY } from "./api_keys.js"
 import { CONTRACT_ABI } from "./abi.js"
-
 
 const app = express();
 const server = app.listen(8000, func);
@@ -36,6 +33,8 @@ const CONTRACT_ADDR = "0xc66dC72dbEbF537824cf47bc1c546099a5d42d5B"
 const provider = new ethers.providers.JsonRpcProvider(ALCHEMY_API_KEY)
 const wallet = new ethers.Wallet(PRIVATE_KEY, provider)
 const contract = new ethers.Contract(CONTRACT_ADDR, CONTRACT_ABI, wallet);
+
+console.log(orbitdb.identity.id)
 
 app.get('/addcargo', async function (req, res) {
 
@@ -64,9 +63,6 @@ app.get('/addcargo', async function (req, res) {
 
 //id'si verilen kaydın döndürülmesi
 
-
-
-
 app.get('/getall', async function (req, res) {
 
   //Tüm kayıtları döndüren req.
@@ -89,11 +85,21 @@ app.get('/get', async function (req, res) {
   const id = req.query.id;
 
   //Bu kısım kontrattaki skargo verisini çeker.
-  await getCargoDetails(id)
-
-  //Burada ilgili kargonun bilgilerine orbitDB'den ulaşılır.
+  const cargo  = await getCargoDetails(id)
   const rec = await getCargoFromOrbitDB(parseInt(id))
-  console.log(rec)
+
+  const json = {
+   sender: cargo.sender,
+   reciever : cargo.receiver ,
+   current : cargo.current ,
+   status : cargo.status ,
+   cargoID : cargo.cargoID ,
+    orbitdbRec : rec
+  }
+  
+  //Burada ilgili kargonun bilgilerine orbitDB'den ulaşılır.
+  
+  console.log(json)
 
   res.end()
 
@@ -129,7 +135,7 @@ async function getCargoFromOrbitDB(id)
 //Bu mobil kullanıcılar register yaparken kullanılacak.
 app.get('/rgstrAddr', async function (req, res) {
     const addr = req.query.addr
-    const name = req.query.name
+    const name = req.query.namen
 
     //İlk önce on-chain olarak işlem gerçekleştirilir.
     const result = registerAddress(addr)
@@ -172,9 +178,7 @@ async function getCargoDetails(cargoID) {
 	cargo.status = tx[3];
 	cargo.cargoID = tx[4].toString();
 
-	console.log(cargo);
-
-
+	return cargo
 }
 
 //Kontrata parametre olarak verilen adres kayıt edilir.
