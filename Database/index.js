@@ -36,6 +36,8 @@ const contract = new ethers.Contract(CONTRACT_ADDR, CONTRACT_ABI, wallet);
 
 console.log(orbitdb.identity.id)
 
+
+//Sadece mobil uygulama tarafında çağrılabilir.
 app.get('/addcargo', async function (req, res) {
 
   //Get request parametreleri sabitlere atanır. Daha fazla çeşit de eklenebilir ihtiyaca göre.
@@ -101,9 +103,9 @@ app.get('/get', async function (req, res) {
   
   console.log(json)
 
-  res.end()
+  res.json(json)
 
-  console.log("Tüm Kayitlar döndürüldü. ")
+  console.log("Tüm Kayitlar döndürüldü.")
   
 });
 
