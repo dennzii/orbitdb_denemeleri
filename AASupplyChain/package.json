@@ -1,0 +1,21 @@
+{
+  "name": "tamsdata-account-abstraction",
+  "version": "1.0.0",
+  "description": "Account Abstraction script folder for TamsData",
+  "main": "tamsdata.ts",
+  "type": "module",
+  "scripts": {
+    "start": "tsx tamsdata.ts"
+  },
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "dotenv": "^16.3.1",
+    "ethers": "^5.6.8",
+    "permissionless": "^0.0.11",
+    "viem": "^1.13.2"
+  },
+  "devDependencies": {
+    "tsx": "^3.13.0"
+  }
+}

@@ -1,0 +1,1 @@
+To run the .ts file: npm start
