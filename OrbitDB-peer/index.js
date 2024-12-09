@@ -25,7 +25,7 @@ const main = async () => {
   const libp2p = await createLibp2p(Libp2pOptions)
   const ipfs = await createHelia({ libp2p, blockstore})
   
-  const orbitdb = await createOrbitDB({ ipfs, directory: `./$db/orbitdb` ,id:"peer"})
+  const orbitdb = await createOrbitDB({ ipfs, directory: `./db/orbitdb` ,id:"peer"})
 
   let db
 
@@ -36,7 +36,9 @@ const main = async () => {
     //Eğer istenirse 'write' attribute'u sadece belirli identitye sahip peer'ların işlem yapabileceği şekilde değiştirilebilir.
     //Default olarak veri memoryde tutuluyor. Bu da peer kapatıldığına verinin yok olması demek. Helia'nın faklı depolama çözümleri kullanılmalı.
     db = await orbitdb.open('my-db',{type:'documents', AccessController: IPFSAccessController({ 
-      write: ['*']
+      write: [orbitdb.identity.id,
+      "0221102b7658297e985ebcad0abfb870570a9ad68ec0a4703c8d4aa60be6ed3b0c"
+      ]
       
     })})
   }
